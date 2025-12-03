@@ -1,0 +1,110 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-12-02 10:42:44.506470",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "reference_doctype",
+  "export_without_main_header",
+  "column_break_xake",
+  "file_type",
+  "column_break_iuez",
+  "status",
+  "section_break_wnjy",
+  "exported_file",
+  "section_break",
+  "filter_list",
+  "fields_multicheck"
+ ],
+ "fields": [
+  {
+   "fieldname": "reference_doctype",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Reference Document Type",
+   "options": "DocType",
+   "reqd": 1
+  },
+  {
+   "default": "CSV",
+   "fieldname": "file_type",
+   "fieldtype": "Select",
+   "label": "File Type",
+   "options": "CSV\nExcel"
+  },
+  {
+   "default": "1",
+   "fieldname": "export_without_main_header",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Export Without Main Header"
+  },
+  {
+   "fieldname": "section_break",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "filter_list",
+   "fieldtype": "HTML",
+   "label": "Filter List"
+  },
+  {
+   "fieldname": "fields_multicheck",
+   "fieldtype": "HTML",
+   "label": "Fields Multicheck"
+  },
+  {
+   "fieldname": "column_break_xake",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_iuez",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Status",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_wnjy",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "exported_file",
+   "fieldtype": "Attach",
+   "label": "Exported File",
+   "read_only": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-12-02 15:13:58.871922",
+ "modified_by": "Administrator",
+ "module": "Custom Export App",
+ "name": "Data Export Custom",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
