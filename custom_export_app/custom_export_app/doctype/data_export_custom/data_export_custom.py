@@ -107,7 +107,7 @@ def export_data(
             do_export_background,
             queue="long",
             job_name=f"Export {doctype} for {docname}",
-            timeout=3000,
+            timeout=30000,
             docname=docname,
             doctype=doctype,
             export_fields=mapped_fields,
