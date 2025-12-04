@@ -101,7 +101,7 @@ def export_data(
 
             mapped_fields[key] = fields
 
-        frappe.msgprint(f"Mapped Fields:\n{mapped_fields}")
+        # frappe.msgprint(f"Mapped Fields:\n{mapped_fields}")
 
         frappe.enqueue(
             do_export_background,
@@ -153,3 +153,50 @@ def do_export_background(
 	e.build_response()
 
 	frappe.db.set_value("Data Export Custom", docname, "status", "Completed")
+
+
+@frappe.whitelist()
+def get_running_export_job(docname=None):
+    from rq.registry import StartedJobRegistry
+    from frappe.utils.background_jobs import get_queues
+    from datetime import datetime
+
+    queues = get_queues()
+    q_long = next((q for q in queues if "long" in q.name), None)
+    if not q_long:
+        return None
+
+    registry = StartedJobRegistry(queue=q_long)
+    running_jobs = []
+
+    for job_id in registry.get_job_ids():
+        job = q_long.fetch_job(job_id)
+        if not job:
+            continue
+
+        job_name = job.kwargs.get("job_name", "") or job.description or ""
+        job_kwargs = job.kwargs.get("kwargs", {})
+        method = job.kwargs.get("method", "")
+
+        if "do_export_background" not in str(method):
+            continue
+
+        if docname and docname not in job_name:
+            continue
+
+        started_at = job.started_at
+        elapsed_seconds = 0
+        if started_at:
+            now = datetime.utcnow()
+            elapsed_seconds = int((now - started_at).total_seconds())
+
+        running_jobs.append({
+            "job_id": job.id,
+            "job_name": job_name,
+            "elapsed_seconds": elapsed_seconds,
+            "docname": job_kwargs.get("docname"),
+            "doctype": job_kwargs.get("doctype"),
+            "file_type": job_kwargs.get("file_type"),
+        })
+
+    return running_jobs[0] if running_jobs else None

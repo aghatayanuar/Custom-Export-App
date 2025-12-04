@@ -1,13 +1,13 @@
 // Copyright (c) 2025, DAS and contributors
 // For license information, please see license.txt
 
+//reference_doctype, file_type, status, exported_file
+
 frappe.ui.form.on("Data Export Custom", {
 	refresh(frm) {
-        console.log("test");
         frm.disable_save();
-		frm.page.set_primary_action("Export", () => {
-			can_export(frm) ? export_data(frm) : null;
-		});
+		setup_export_actions(frm);
+		get_background_id(frm);
 	},
     onload: (frm) => {
 		frm.set_query("reference_doctype", () => {
@@ -48,28 +48,6 @@ const can_export = (frm) => {
 	}
 	return is_valid_form;
 };
-
-// const export_data = (frm) => {
-// 	let get_template_url = "/api/method/frappe.core.doctype.data_export.exporter.export_data";
-// 	var export_params = () => {
-// 		let columns = {};
-// 		Object.keys(frm.fields_multicheck).forEach((dt) => {
-// 			const options = frm.fields_multicheck[dt].get_checked_options();
-// 			columns[dt] = options;
-// 		});
-// 		return {
-// 			doctype: frm.doc.reference_doctype,
-// 			select_columns: JSON.stringify(columns),
-// 			filters: frm.filter_list.get_filters().map((filter) => filter.slice(1, 4)),
-// 			file_type: frm.doc.file_type,
-// 			template: !frm.doc.export_without_main_header,
-// 			with_data: 1,
-// 			export_without_column_meta: frm.doc.export_without_main_header ? true : false,
-// 		};
-// 	};
-
-// 	open_url_post(get_template_url, export_params());
-// };
 
 const export_data = async (frm) => {
     if (frm.is_dirty()) {
@@ -218,3 +196,82 @@ const add_doctype_field_multicheck_control = (doctype, parent_wrapper) => {
 const filter_fields = (df) => frappe.model.is_value_type(df) && !df.hidden;
 const get_fields = (dt) => frappe.meta.get_docfields(dt).filter(filter_fields);
 
+
+function get_background_id(frm) {
+	if (frm.doc.status !== "Processing") {
+		return;
+	}
+
+	frappe.call({
+		method: "custom_export_app.custom_export_app.doctype.data_export_custom.data_export_custom.get_running_export_job",
+		args: {
+			docname: frm.doc.name
+		},
+		callback: function(r) {
+
+			let jobMessage = "";
+			let statusMessage = "processing data...";
+
+			if (r.message) {
+				let job_id = r.message.job_id || "";
+				let elapsed = r.message.elapsed_seconds || 0;
+
+				let minutes = Math.floor(elapsed / 60);
+				let seconds = elapsed % 60;
+
+				jobMessage = `(Job ID: ${job_id}, running ${minutes}m ${seconds}s)`;
+			}
+
+			let headline = `${statusMessage} ${jobMessage}`.trim();
+			frm.dashboard.set_headline(headline);
+		}
+	});
+}
+
+
+function is_new_doc(frm) {
+	return frm.is_new() || frm.doc.__islocal;
+}
+
+
+function setup_export_actions(frm) {
+	const new_doc = is_new_doc(frm);
+
+	frm.page.clear_primary_action();
+
+	if (new_doc) {
+		frm.page.set_primary_action("Export", () => {
+			can_export(frm) ? export_data(frm) : null;
+		});
+
+		unlock_export_fields(frm);
+	} else {
+		lock_export_fields(frm);
+	}
+}
+
+
+function lock_export_fields(frm) {
+	const fields = [
+		"reference_doctype",
+		"file_type",
+		"status",
+		"exported_file",
+	];
+
+	fields.forEach(f => frm.set_df_property(f, "read_only", 1));
+
+	frm.refresh_fields();
+}
+
+
+function unlock_export_fields(frm) {
+	const fields = [
+		"reference_doctype",
+		"file_type",
+	];
+
+	fields.forEach(f => frm.set_df_property(f, "read_only", 0));
+
+	frm.refresh_fields();
+}
